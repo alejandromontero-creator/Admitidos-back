@@ -1,17 +1,19 @@
-const express = require('express');
-const router = express.Router();
-const {
-  crearPrograma,
-  listarProgramas,
-  obtenerPrograma,
-  actualizarPrograma,
-  eliminarPrograma,
-} = require('../controllers/programaController');
+import { Router } from "express";
 
-router.post('/', crearPrograma);
-router.get('/', listarProgramas);
-router.get('/:id', obtenerPrograma);
-router.put('/:id', actualizarPrograma);
-router.delete('/:id', eliminarPrograma);
+import {
+    listarprogramas,
+    obtenerProgramaPorId,
+    crearPrograma,
+    actualizarPrograma,
+    eliminarPrograma
+} from "./programas.controller.js";
 
-module.exports = router;
+const router = Router();
+
+router.get("/show/", listarprogramas);
+router.get("/info/:id", obtenerProgramaPorId);
+router.post("/create", crearPrograma);
+router.put("/update/:id", actualizarPrograma);
+router.delete("/delete/:id", eliminarPrograma);
+
+export default router;

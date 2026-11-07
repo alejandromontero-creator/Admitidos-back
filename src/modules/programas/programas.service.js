@@ -1,45 +1,40 @@
+import programa from "./programas.model.js";
+import facultad from "../facultades/facultades.model.js";
 
-import db from '../../config/database.js';
+// VERIFICAR SI UNA FACULTAD EXISTE
+export async function existeFacultad(id) {
+    return (await facultad.exists({ _id: id })) !== null;
+}
 
-// LISTAR TODOS LOS PROGRAMAS
-export async function listarprogramas() {
-    const [rows] = await db.query(`
-        SELECT * FROM programas
-        ORDER BY nombre ASC
-    `);
-
-    return rows;
+// LISTAR TODOS LOS PROGRAMAS (opcionalmente filtrados por facultad)
+export async function listarprogramas(facultadId) {
+    const filtro = facultadId ? { facultad: facultadId } : {};
+    return await programa.find(filtro)
+        .populate("facultad", "nombre")
+        .sort({ nombre: 1 });
 }
 
 // OBTENER PROGRAMA POR ID
 export async function obtenerProgramaPorId(id) {
-    const [rows] = await db.query(`
-        SELECT * FROM programas WHERE id = ?
-    `, [id]);
-
-    return rows[0] || null;
+    return await programa.findById(id).populate("facultad", "nombre");
 }
 
 // CREAR PROGRAMA
-export async function crearPrograma(codigo, facultad_id, nombre, nivel, modalidad) {
-    const [result] = await db.query(`
-        INSERT INTO programas (codigo, facultad_id, nombre, nivel, modalidad)
-        VALUES (?, ?, ?, ?, ?)
-    `, [codigo, facultad_id, nombre, nivel, modalidad]);
-
-    return await obtenerProgramaPorId(result.insertId);
+export async function crearPrograma(nombre, facultadId) {
+    return await programa.create({ nombre, facultad: facultadId });
 }
 
 // ACTUALIZAR PROGRAMA
-export async function actualizarPrograma(id, codigo, facultad_id, nombre, nivel, modalidad) {
-    await db.query(`
-        UPDATE programas
-        SET codigo = ?, facultad_id = ?, nombre = ?, nivel = ?, modalidad = ?
-        WHERE id = ?
-    `, [codigo, facultad_id, nombre, nivel, modalidad, id]);
+export async function actualizarPrograma(id, nombre, facultadId) {
+    return await programa.findByIdAndUpdate(
+        id,
+        { nombre, facultad: facultadId },
+        { returnDocument: "after", runValidators: true }
+    );
 }
 
 // ELIMINAR PROGRAMA
 export async function eliminarPrograma(id) {
-    await db.query(`DELETE FROM programas WHERE id = ?`, [id]);
+    const eliminado = await programa.findByIdAndDelete(id);
+    return eliminado !== null;
 }
