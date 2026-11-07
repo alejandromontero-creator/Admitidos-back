@@ -1,83 +1,31 @@
-
-import db from '../../config/database.js';
-
-// VALIDAR ID
-function validarId(id) {
-    if (!Number.isInteger(id) || id <= 0) {
-        throw new Error('ID de facultad inválido');
-    }
-}
-
-// VALIDAR NOMBRE
-function validarNombre(nombre) {
-    if (typeof nombre !== 'string' || nombre.trim() === '') {
-        throw new Error('El campo "nombre" es obligatorio');
-    }
-
-    if (nombre.trim().length < 3 || nombre.trim().length > 150) {
-        throw new Error('El nombre debe tener entre 3 y 150 caracteres');
-    }
-}
+import facultad from "./facultades.model.js";
 
 // LISTAR TODAS LAS FACULTADES
 export async function listarfacultades() {
-    const [rows] = await db.query(`
-        SELECT
-            id,
-            nombre,
-            created_at AS createdAt,
-            updated_at AS updatedAt
-        FROM facultades
-        ORDER BY nombre ASC
-    `);
-
-    return rows;
+    return await facultad.find().sort({ nombre: 1 });
 }
 
 // OBTENER FACULTAD POR ID
 export async function obtenerFacultadPorId(id) {
-    validarId(id);
-
-    const [rows] = await db.query(`
-        SELECT
-            id,
-            nombre,
-            created_at AS createdAt,
-            updated_at AS updatedAt
-        FROM facultades
-        WHERE id = ?
-    `, [id]);
-
-    return rows[0] || null;
+    return await facultad.findById(id);
 }
 
 // CREAR FACULTAD
 export async function crearFacultad(nombre) {
-    validarNombre(nombre);
-
-    const [result] = await db.query(`
-        INSERT INTO facultades (nombre)
-        VALUES (?)
-    `, [nombre.trim()]);
-
-    return await obtenerFacultadPorId(result.insertId);
+    return await facultad.create({ nombre });
 }
 
 // ACTUALIZAR FACULTAD
 export async function actualizarFacultad(id, nombre) {
-    validarId(id);
-    validarNombre(nombre);
-
-    await db.query(`UPDATE facultades SET nombre = ? WHERE id = ?`, [nombre.trim(), id]
+    return await facultad.findByIdAndUpdate(
+        id,
+        { nombre },
+        { returnDocument: "after", runValidators: true }
     );
 }
 
 // ELIMINAR FACULTAD
 export async function eliminarFacultad(id) {
-    validarId(id);
-
-    const [result] = await db.query(`DELETE FROM facultades WHERE id = ?`, [id]
-    );
-
-    return result.affectedRows > 0;
+    const eliminada = await facultad.findByIdAndDelete(id);
+    return eliminada !== null;
 }

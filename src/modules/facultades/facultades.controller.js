@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 
 import * as facultadesService from './facultades.service.js';
 
@@ -25,9 +26,9 @@ export async function listarfacultades(req, res) {
 // OBTENER FACULTAD POR ID
 export async function obtenerFacultadPorId(req, res) {
     try {
-        const id = Number(req.params.id);
+        const id = req.params.id
 
-        if (!Number.isInteger(id) || id <= 0) {
+        if (!mongoose.isValidObjectId(id) || id <= 0) {
             return res.status(400).json({
                 statusCode: 400,
                 success: false,
@@ -103,10 +104,10 @@ export async function crearFacultad(req, res) {
 // ACTUALIZAR FACULTAD
 export async function actualizarFacultad(req, res) {
     try {
-        const id = Number(req.params.id);
+        const id = req.params.id
         const { nombre } = req.body ?? {};
 
-        if (!Number.isInteger(id) || id <= 0) {
+        if (!mongoose.isValidObjectId(id) || id <= 0) {
             return res.status(400).json({
                 statusCode: 400,
                 success: false,
@@ -161,9 +162,9 @@ export async function actualizarFacultad(req, res) {
 // ELIMINAR FACULTAD
 export async function eliminarFacultad(req, res) {
     try {
-        const id = Number(req.params.id);
+        const id = req.params.id
 
-        if (!Number.isInteger(id) || id <= 0) {
+        if (!mongoose.isValidObjectId(id) || id <= 0) {
             return res.status(400).json({
                 statusCode: 400,
                 success: false,
