@@ -125,3 +125,16 @@ export async function eliminarEstudiante(req, res) {
     return manejarError(res, error);
   }
 }
+
+export async function obtenerMiPerfil(req, res) {
+  try {
+    if (!req.usuario.estudiante) {
+      return responder(res, 404, "Tu cuenta no tiene un estudiante asociado");
+    }
+    const estudiante = await estudiantesService.obtenerEstudiantePorId(req.usuario.estudiante);
+    if (!estudiante) return responder(res, 404, "Estudiante no encontrado");
+    return responder(res, 200, "Perfil encontrado", estudiante);
+  } catch (error) {
+    return manejarError(res, error);
+  }
+}

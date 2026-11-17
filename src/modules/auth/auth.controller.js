@@ -2,6 +2,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import usuario from "./usuarios.model.js";
+import mongoose from "mongoose";
+import estudiante from "../estudiantes/estudiantes.model.js";
 
 const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -61,6 +63,33 @@ export async function login(req, res) {
       rol: encontrado.rol
     });
   } catch (error) {
+    return responder(res, 500, "Error interno del servidor");
+  }
+}
+
+export async function crearUsuarioEstudiante(req, res) {
+  try {
+    const { estudiante: estudianteId, password } = req.body ?? {};
+    if (!mongoose.isValidObjectId(estudianteId)) {
+      return responder(res, 400, "ID de estudiante inválido");
+    }
+    if (typeof password !== "string" || password.length < 6) {
+      return responder(res, 400, "La contraseña debe tener mínimo 6 caracteres");
+    }
+    const encontrado = await estudiante.findById(estudianteId);
+    if (!encontrado) return responder(res, 404, "Estudiante no encontrado");
+    if (await usuario.exists({ estudiante: estudianteId })) {
+      return responder(res, 409, "Este estudiante ya tiene cuenta");
+    }
+    const nuevo = await usuario.create({
+      correo: encontrado.correo,
+      password: await bcrypt.hash(password, 10),
+      rol: "estudiante",
+      estudiante: estudianteId
+    });
+    return responder(res, 201, "Cuenta de estudiante creada", { correo: nuevo.correo, rol: nuevo.rol });
+  } catch (error) {
+    if (error.code === 11000) return responder(res, 409, "Ya existe una cuenta con ese correo");
     return responder(res, 500, "Error interno del servidor");
   }
 }
